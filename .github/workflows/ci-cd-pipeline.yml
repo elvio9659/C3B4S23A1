@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+
+# Quando o pipeline será executado
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Build e Testes Automatizados (CI)
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Passo 1: Fazer checkout do código
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # Passo 2: Configurar a versão LTS do Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Passo 3: Instalar dependências
+      - name: Instalar dependências
+        run: npm install
+
+      # Passo 4: Executar os testes automatizados
+      - name: Executar testes
+        run: npm test
+
+  # Job 2: Deploy Automático (CD)
+  deploy:
+    needs: build-and-test # Só roda se o job de testes passar com sucesso
+    runs-on: ubuntu-latest
+    steps:
+      # Dispara a atualização no servidor via Token de Acesso (Deploy Hook)
+      - name: Disparar Deploy na Nuvem
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
